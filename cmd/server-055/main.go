@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	listener, err := net.Listen("tcp6", "localhost:6034")
+	listener, err := net.Listen("tcp4", ":13029")
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
