@@ -9,12 +9,23 @@ import (
 	"os"
 	"time"
 
+	"055/internal/config"
 	"055/internal/protocol"
 	"055/internal/stream"
 )
 
 func main() {
-	conn, err := net.Dial("tcp6", "services-o055.alwaysdata.net:8357")
+	network, address := config.NETWORK, config.ADDRESS
+	if len(os.Args) >= 2 && len(os.Args) <= 3 {
+		network = os.Args[1]
+	} else if len(os.Args) == 3 {
+		network = os.Args[1]
+		address = os.Args[2]
+	} else {
+		log.Fatalln("usage: 055 [NETWORK] [ADDRESS]")
+	}
+
+	conn, err := net.Dial(network, address)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}

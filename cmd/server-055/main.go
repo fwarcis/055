@@ -4,12 +4,24 @@ import (
 	"io"
 	"log"
 	"net"
+	"os"
 
+	"055/internal/config"
 	"055/internal/stream"
 )
 
 func main() {
-	listener, err := net.Listen("tcp4", ":13029")
+	network, address := config.NETWORK, config.ADDRESS
+	if len(os.Args) >= 2 && len(os.Args) <= 3 {
+		network = os.Args[1]
+	} else if len(os.Args) == 3 {
+		network = os.Args[1]
+		address = os.Args[2]
+	} else {
+		log.Fatalln("usage: 055 [NETWORK] [ADDRESS]")
+	}
+
+	listener, err := net.Listen(network, address)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
