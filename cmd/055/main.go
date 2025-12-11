@@ -16,13 +16,14 @@ import (
 
 func main() {
 	network, address := config.NETWORK, config.ADDRESS
-	if len(os.Args) >= 2 && len(os.Args) <= 3 {
+	if len(os.Args) == 2 {
 		network = os.Args[1]
 	} else if len(os.Args) == 3 {
 		network = os.Args[1]
 		address = os.Args[2]
-	} else {
-		log.Fatalln("usage: 055 [NETWORK] [ADDRESS]")
+	} else if len(os.Args) > 3 {
+		fmt.Println("usage: 055 [NETWORK] [ADDRESS]")
+		os.Exit(1)
 	}
 
 	conn, err := net.Dial(network, address)
