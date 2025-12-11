@@ -19,8 +19,10 @@ type Stream interface {
 	Close() error
 }
 
-const EndOfPacket = 0
-const PacketPartsSeparator = "\t"
+const (
+	EndOfPacket          = 0
+	PacketPartsSeparator = "\t"
+)
 
 type ConnectionStream struct {
 	conn           net.Conn

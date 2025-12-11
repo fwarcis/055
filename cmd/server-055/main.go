@@ -39,12 +39,12 @@ func main() {
 			conn, stream.EndOfPacket, stream.PacketPartsSeparator)
 		streams = append(streams, stm)
 
-		go distribute(streams, stm)
+		go distribute(&streams, stm)
 
 	}
 }
 
-func distribute(streams []stream.Stream, stm stream.Stream) {
+func distribute(streams *[]stream.Stream, stm stream.Stream) {
 	defer stm.Close()
 	for {
 		packet, err := stm.Receive()
@@ -56,11 +56,11 @@ func distribute(streams []stream.Stream, stm stream.Stream) {
 			return
 		}
 
-		for i := range streams {
-			if streams[i] == stm {
+		for i := range *streams {
+			if (*streams)[i] == stm {
 				continue
 			}
-			sent, err := streams[i].Send(*packet)
+			sent, err := (*streams)[i].Send(*packet)
 			if err != nil {
 				log.Printf(err.Error()+" (%d bytes sent)\n", sent)
 			}
