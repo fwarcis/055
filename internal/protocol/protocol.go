@@ -3,6 +3,6 @@ package protocol
 
 type Type string
 
-const (
+const ( // TODO: Bitwise types
 	Message Type = "message"
 )

@@ -58,10 +58,10 @@ func (stm *ConnectionStream) Receive() (*Packet, error) {
 		return nil, &WrongPacketFormatError{Content: packetContent}
 	}
 
-	endOfPacketIndex := len(packetParts[1])-1
+	endOfPacketIndex := len(packetParts[1]) - 1
 	return &Packet{
 		Header: packetParts[0],
-		Body: packetParts[1][:endOfPacketIndex],
+		Body:   packetParts[1][:endOfPacketIndex],
 	}, nil
 }
 
