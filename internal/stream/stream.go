@@ -57,7 +57,12 @@ func (stm *ConnectionStream) Receive() (*Packet, error) {
 	if len(packetParts) != 2 {
 		return nil, &WrongPacketFormatError{Content: packetContent}
 	}
-	return &Packet{Header: packetParts[0], Body: packetParts[1]}, nil
+
+	endOfPacketIndex := len(packetParts[1])-1
+	return &Packet{
+		Header: packetParts[0],
+		Body: packetParts[1][:endOfPacketIndex],
+	}, nil
 }
 
 func (stm *ConnectionStream) Send(packet Packet) (sent int, err error) {
