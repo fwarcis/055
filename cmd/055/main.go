@@ -9,29 +9,22 @@ import (
 	"os"
 	"time"
 
-	"055/internal/config"
 	"055/internal/protocol"
 	"055/internal/stream"
 )
 
 func main() {
-	network, address := config.NETWORK, config.ADDRESS
-	if len(os.Args) == 2 {
-		network = os.Args[1]
-	} else if len(os.Args) == 3 {
-		network = os.Args[1]
-		address = os.Args[2]
-	} else if len(os.Args) > 3 {
-		fmt.Println("usage: 055 [NETWORK] [ADDRESS]")
+	if len(os.Args) >= 3 {
+		fmt.Println("usage: 055 [ADDRESS]")
 		os.Exit(1)
 	}
 
-	conn, err := net.Dial(network, address)
+	cfg := NewConfig()
+	conn, err := net.Dial("tcp", cfg.Address)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
 	defer conn.Close()
-
 	stm := stream.NewConnectionStream(
 		conn, stream.EndOfPacket, stream.PacketPartsSeparator)
 

@@ -1,29 +1,21 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"net"
 	"os"
 
-	"055/internal/config"
 	"055/internal/stream"
 )
 
 func main() {
-	network, address := config.NETWORK, config.ADDRESS
-	if len(os.Args) == 2 {
-		network = os.Args[1]
-	} else if len(os.Args) == 3 {
-		network = os.Args[1]
-		address = os.Args[2]
-	} else if len(os.Args) > 3 {
-		fmt.Println("usage: 055 [NETWORK] [ADDRESS]")
-		os.Exit(1)
+	if len(os.Args) >= 3 {
+		log.Fatalln("usage: 055 [ADDRESS]")
 	}
 
-	listener, err := net.Listen(network, address)
+	cfg := NewConfig()
+	listener, err := net.Listen("tcp", cfg.Address)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
