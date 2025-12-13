@@ -1,9 +1,11 @@
 package main
 
-import "os"
+import (
+	"os"
+)
 
 func NewConfig() Config {
-	address := "[::]:8550"
+	address := ":8300"
 	if len(os.Args) >= 2 {
 		address = os.Args[1]
 	} else if envAddr := os.Getenv("O055_ADDRESS"); envAddr != "" {
