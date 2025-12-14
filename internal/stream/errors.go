@@ -7,5 +7,5 @@ type WrongPacketFormatError struct {
 }
 
 func (err *WrongPacketFormatError) Error() string {
-	return fmt.Sprintf("conn stream: \"%s\": wrong packet format", err.Content)
+	return fmt.Sprintf("stream: \"%s\": wrong packet format", err.Content)
 }
