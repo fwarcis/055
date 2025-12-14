@@ -20,7 +20,7 @@ type Stream interface {
 
 const (
 	EndOfPacket   = 0
-	HeaderBodySep = "\t"
+	HeaderBodySep = "\x1e"
 )
 
 type ConnStream struct {
