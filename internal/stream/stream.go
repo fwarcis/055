@@ -19,16 +19,16 @@ type Stream interface {
 }
 
 const (
-	EndOfPacket          = 0
-	PacketPartsSeparator = "\t"
+	EndOfPacket   = 0
+	HeaderBodySep = "\t"
 )
 
 type ConnStream struct {
-	conn           net.Conn
-	reader         bufio.Reader
-	writer         bufio.Writer
-	endOfPacket    byte
-	packetPartsSep string
+	conn          net.Conn
+	reader        bufio.Reader
+	writer        bufio.Writer
+	endOfPacket   byte
+	headerBodySep string
 }
 
 func NewConnectionStream(
@@ -37,11 +37,11 @@ func NewConnectionStream(
 	packetPartsSep string,
 ) Stream {
 	return &ConnStream{
-		conn:           conn,
-		reader:         *bufio.NewReader(conn),
-		writer:         *bufio.NewWriter(conn),
-		endOfPacket:    endOfPacket,
-		packetPartsSep: packetPartsSep,
+		conn:          conn,
+		reader:        *bufio.NewReader(conn),
+		writer:        *bufio.NewWriter(conn),
+		endOfPacket:   endOfPacket,
+		headerBodySep: packetPartsSep,
 	}
 }
 
@@ -51,7 +51,7 @@ func (stm *ConnStream) Receive() (*Packet, error) {
 		return nil, err
 	}
 
-	packetParts := strings.SplitN(packetContent, stm.packetPartsSep, 2)
+	packetParts := strings.SplitN(packetContent, stm.headerBodySep, 2)
 	if len(packetParts) != 2 {
 		return nil, &WrongPacketFormatError{Content: packetContent}
 	}
@@ -64,7 +64,7 @@ func (stm *ConnStream) Receive() (*Packet, error) {
 }
 
 func (stm *ConnStream) Send(packet Packet) (sent int, err error) {
-	packetContent := (packet.Header + stm.packetPartsSep +
+	packetContent := (packet.Header + stm.headerBodySep +
 		packet.Body + string(stm.endOfPacket))
 	if packet.Header == "" || packet.Body == "" {
 		return 0, &WrongPacketFormatError{Content: packetContent}

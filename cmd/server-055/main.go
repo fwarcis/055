@@ -28,7 +28,7 @@ func main() {
 			log.Println(err.Error())
 		}
 		stm := stream.NewConnectionStream(
-			conn, stream.EndOfPacket, stream.PacketPartsSeparator)
+			conn, stream.EndOfPacket, stream.HeaderBodySep)
 		streams = append(streams, stm)
 
 		go distribute(&streams, stm)

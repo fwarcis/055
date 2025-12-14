@@ -26,7 +26,7 @@ func main() {
 	}
 	defer conn.Close()
 	stm := stream.NewConnectionStream(
-		conn, stream.EndOfPacket, stream.PacketPartsSeparator)
+		conn, stream.EndOfPacket, stream.HeaderBodySep)
 
 	go send(stm, conn.RemoteAddr().String())
 	go receive(stm)
