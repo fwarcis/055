@@ -23,7 +23,7 @@ const (
 	PacketPartsSeparator = "\t"
 )
 
-type ConnectionStream struct {
+type ConnStream struct {
 	conn           net.Conn
 	reader         bufio.Reader
 	writer         bufio.Writer
@@ -36,7 +36,7 @@ func NewConnectionStream(
 	endOfPacket byte,
 	packetPartsSep string,
 ) Stream {
-	return &ConnectionStream{
+	return &ConnStream{
 		conn:           conn,
 		reader:         *bufio.NewReader(conn),
 		writer:         *bufio.NewWriter(conn),
@@ -45,7 +45,7 @@ func NewConnectionStream(
 	}
 }
 
-func (stm *ConnectionStream) Receive() (*Packet, error) {
+func (stm *ConnStream) Receive() (*Packet, error) {
 	packetContent, err := stm.reader.ReadString(stm.endOfPacket)
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func (stm *ConnectionStream) Receive() (*Packet, error) {
 	}, nil
 }
 
-func (stm *ConnectionStream) Send(packet Packet) (sent int, err error) {
+func (stm *ConnStream) Send(packet Packet) (sent int, err error) {
 	packetContent := (packet.Header + stm.packetPartsSep +
 		packet.Body + string(stm.endOfPacket))
 	if packet.Header == "" || packet.Body == "" {
@@ -81,6 +81,6 @@ func (stm *ConnectionStream) Send(packet Packet) (sent int, err error) {
 	return sent, nil
 }
 
-func (stm *ConnectionStream) Close() error {
+func (stm *ConnStream) Close() error {
 	return stm.conn.Close()
 }
