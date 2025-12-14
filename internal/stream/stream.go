@@ -5,7 +5,6 @@ import (
 	"bufio"
 	"net"
 	"strings"
-	"sync"
 )
 
 type Packet struct {
@@ -26,7 +25,6 @@ const (
 
 type ConnectionStream struct {
 	conn           net.Conn
-	mutex          sync.Mutex
 	reader         bufio.Reader
 	writer         bufio.Writer
 	endOfPacket    byte
