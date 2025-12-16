@@ -8,7 +8,7 @@ import (
 	"syscall"
 )
 
-func IsAnyEOF(err error) bool {
+func IsDisconnectCond(err error) bool {
 	return err == io.EOF || errors.Is(err, io.ErrUnexpectedEOF) ||
 		errors.Is(err, net.ErrClosed) || errors.Is(err, net.ErrWriteToConnected) ||
 		errors.Is(err, syscall.EPIPE)

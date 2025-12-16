@@ -2,12 +2,13 @@
 package server
 
 import (
-	"055/internal/data/logging"
-	"055/internal/data/statuses"
-	"055/internal/data/stream"
 	"context"
 	"net"
 	"sync"
+
+	"055/internal/data/logging"
+	"055/internal/data/statuses"
+	"055/internal/data/stream"
 )
 
 // TODO: stream.Stream wrapper for communication logic with the protocol
@@ -16,7 +17,7 @@ func WatchErrors(cancel context.CancelFunc, errChan chan error) {
 	for err := range errChan {
 		logging.HandleForLogging(err)
 
-		if stream.IsAnyEOF(err) {
+		if stream.IsDisconnectCond(err) {
 			cancel()
 			return
 		}
@@ -60,7 +61,7 @@ func RunSharingWithOthers(
 	var err error
 	var packet *stream.Packet
 
-	for !stream.IsAnyEOF(err) {
+	for !stream.IsDisconnectCond(err) {
 		select {
 		case <-ctx.Done():
 			return

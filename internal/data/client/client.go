@@ -15,7 +15,7 @@ func WatchErrors(cancel context.CancelFunc, errChan chan error) {
 	for err := range errChan {
 		logging.HandleForLogging(err)
 
-		if stream.IsAnyEOF(err) {
+		if stream.IsDisconnectCond(err) {
 			cancel()
 			return
 		}
@@ -26,7 +26,7 @@ func RunSending(ctx context.Context, stm stream.Stream, errChan chan error) {
 	var err error
 	input := ""
 
-	for !stream.IsAnyEOF(err) {
+	for !stream.IsDisconnectCond(err) {
 		select {
 		case <-ctx.Done():
 			return
@@ -50,7 +50,7 @@ func RunReceiving(ctx context.Context, stm stream.Stream, errChan chan error) {
 	var err error
 	var packet *stream.Packet
 
-	for !stream.IsAnyEOF(err) {
+	for !stream.IsDisconnectCond(err) {
 		select {
 		case <-ctx.Done():
 			return
