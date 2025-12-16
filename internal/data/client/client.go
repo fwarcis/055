@@ -24,7 +24,7 @@ func WatchErrors(cancel context.CancelFunc, errChan chan error) {
 
 func RunSending(ctx context.Context, stm stream.Stream, errChan chan error) {
 	var err error
-	input := ""
+	input, sent := "", 0
 
 	for !stream.IsDisconnectCond(err) {
 		select {
@@ -39,9 +39,16 @@ func RunSending(ctx context.Context, stm stream.Stream, errChan chan error) {
 			continue
 		}
 
-		_, err = stm.Send("message", input)
+		header := "message"
+		body := input
+		sent, err = stm.Send(header, body)
 		if err != nil {
-			errChan <- err
+			errChan <- &logging.SendingError{
+				Receiver: stm,
+				Packet: stm.Deserialize(header, body),
+				Sent: sent,
+				BaseErr: err,
+			}
 		}
 	}
 }
@@ -59,7 +66,7 @@ func RunReceiving(ctx context.Context, stm stream.Stream, errChan chan error) {
 
 		packet, err = stm.Receive()
 		if err != nil {
-			errChan <- err
+			errChan <- &logging.ReceivingError{Sender: stm, BaseErr: err}
 			continue
 		}
 

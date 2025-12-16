@@ -2,6 +2,7 @@
 package logging
 
 import (
+	"fmt"
 	"log"
 
 	"055/internal/data/stream"
@@ -20,4 +21,21 @@ type ReceivingError struct {
 
 func (err *ReceivingError) Error() string {
 	return err.Sender.Address() + ": " + err.BaseErr.Error()
+}
+
+type SendingError struct {
+	Receiver stream.Stream
+	Packet   stream.Packet
+	Sent     int
+	BaseErr  error
+}
+
+func (err *SendingError) Error() string {
+	return fmt.Sprintf(
+		"%s (%dB sent): %s: %s",
+		err.Receiver.Address(),
+		err.Sent,
+		err.Packet.Serialize(),
+		err.BaseErr.Error(),
+	)
 }

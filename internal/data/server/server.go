@@ -60,6 +60,7 @@ func RunSharingWithOthers(
 ) {
 	var err error
 	var packet *stream.Packet
+	sent := 0
 
 	for !stream.IsDisconnectCond(err) {
 		select {
@@ -70,18 +71,29 @@ func RunSharingWithOthers(
 
 		packet, err = sender.Receive()
 		if err != nil {
-			sender.Send(string(statuses.Error), err.Error())
 			errChan <- &logging.ReceivingError{Sender: sender, BaseErr: err}
+			sent, err = sender.Send(string(statuses.Error), err.Error())
+			if err != nil {
+				errChan <- &logging.SendingError{Receiver: sender, Sent: sent, BaseErr: err}
+			}
 			continue
 		}
-		sender.Send(string(statuses.Success), "message received")
+		sent, err := sender.Send(string(statuses.Success), "message received")
+		if err != nil {
+			errChan <- &logging.SendingError{Receiver: sender, Sent: sent, BaseErr: err}
+		}
 
 		for i := range *receivers {
 			currentStream := (*receivers)[i]
 			header, body := (*packet).Header(), (*packet).Body()
-			_, err = currentStream.Send(header, body)
+			sent, err = currentStream.Send(header, body)
 			if err != nil {
-				errChan <- &logging.ReceivingError{Sender: sender, BaseErr: err}
+				errChan <- &logging.SendingError{
+					Receiver: currentStream,
+					Packet: *packet,
+					Sent: sent,
+					BaseErr: err,
+				}
 			}
 		}
 	}

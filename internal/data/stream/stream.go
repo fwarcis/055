@@ -9,8 +9,8 @@ import (
 type Stream interface {
 	Receive() (*Packet, error)
 	Send(header, body string) (sent int, err error)
-	Close() error
 	Address() string
+	Deserialize(header, body string) Packet
 }
 
 type ConnStream struct {
@@ -66,8 +66,8 @@ func (strm *ConnStream) Send(header, body string) (sent int, err error) {
 	return sent, nil
 }
 
-func (strm *ConnStream) Close() error {
-	return strm.conn.Close()
+func (strm *ConnStream) Deserialize(header, body string) Packet {
+	return &validPacket{header, body, strm.headerBodySep, strm.endOfPacket}
 }
 
 func (strm *ConnStream) Address() string {
