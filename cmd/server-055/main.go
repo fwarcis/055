@@ -1,61 +1,32 @@
 package main
 
 import (
-	"io"
-	"log"
+	"context"
 	"net"
 	"os"
+	"sync"
 
-	"055/internal/stream"
+	"055/internal/data/server"
 )
 
 func main() {
-	if len(os.Args) >= 3 {
-		log.Fatalln("usage: 055 [ADDRESS]")
-	}
+	var wg sync.WaitGroup
+	errChan := make(chan error)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	cfg := NewConfig()
+	wg.Go(func() { server.WatchErrors(cancel, errChan) })
+
 	listener, err := net.Listen("tcp", cfg.Address)
 	if err != nil {
-		log.Fatalln(err.Error())
+		errChan <- err
+		close(errChan)
+		wg.Wait()
+		os.Exit(1)
 	}
 	defer listener.Close()
 
-	streams := []stream.Stream{}
-	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			log.Println(err.Error())
-		}
-		stm := stream.NewConnectionStream(
-			conn, stream.EndOfPacket, stream.HeaderBodySep)
-		streams = append(streams, stm)
+	wg.Go(func() { server.RunListening(ctx, listener, &wg, errChan) })
 
-		go distribute(&streams, stm)
-
-	}
-}
-
-func distribute(streams *[]stream.Stream, stm stream.Stream) {
-	defer stm.Close()
-	for {
-		packet, err := stm.Receive()
-		if err != nil && err != io.EOF {
-			log.Println(err.Error())
-			continue
-		} else if err == io.EOF {
-			log.Println("connection closed")
-			return
-		}
-
-		for i := range *streams {
-			if (*streams)[i] == stm {
-				continue
-			}
-			sent, err := (*streams)[i].Send(*packet)
-			if err != nil {
-				log.Printf(err.Error()+" (%d bytes sent)\n", sent)
-			}
-		}
-	}
+	wg.Wait()
 }

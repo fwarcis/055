@@ -1,74 +1,43 @@
 package main
 
 import (
-	"bufio"
+	"context"
 	"fmt"
-	"io"
-	"log"
 	"net"
 	"os"
-	"time"
+	"sync"
 
-	"055/internal/protocol"
-	"055/internal/stream"
+	"055/internal/data/client"
+	"055/internal/data/stream"
 )
 
 func main() {
+	var wg sync.WaitGroup
+	errChan := make(chan error)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	wg.Go(func() { client.WatchErrors(cancel, errChan) })
+
 	if len(os.Args) >= 3 {
 		fmt.Println("usage: 055 [ADDRESS]")
 		os.Exit(1)
 	}
 
-	cfg := NewConfig()
 	conn, err := net.Dial("tcp", cfg.Address)
 	if err != nil {
-		log.Fatalln(err.Error())
+		errChan <- err
+		close(errChan)
+		wg.Wait()
+		os.Exit(1)
 	}
 	defer conn.Close()
-	stm := stream.NewConnectionStream(
-		conn, stream.EndOfPacket, stream.HeaderBodySep)
 
-	go send(stm, conn.RemoteAddr().String())
-	go receive(stm)
+	stm := stream.NewConnStream(
+		conn, stream.HeaderBodySep, stream.EndOfPacket)
 
-	for {
-		time.Sleep(50 * time.Millisecond)
-	}
-}
+	wg.Go(func() { client.RunReceiving(ctx, stm, errChan) })
+	wg.Go(func() { client.RunSending(ctx, stm, errChan) })
 
-func send(stm stream.Stream, remoteAddr string) {
-	for {
-		fmt.Print(remoteAddr + ": ")
-		input, err := bufio.NewReader(os.Stdin).ReadString('\n')
-		if err != nil {
-			log.Println(err.Error())
-			continue
-		}
-
-		sent, err := stm.Send(stream.Packet{Header: string(protocol.Message), Body: input})
-		if err != nil && err != io.EOF {
-			log.Printf(err.Error()+" (%d sent)\n", sent)
-		} else if err == io.EOF {
-			log.Println("connection closed")
-			return
-		}
-	}
-}
-
-func receive(stm stream.Stream) {
-	for {
-		packet, err := stm.Receive()
-		time.Sleep(50 * time.Millisecond)
-		if err != nil && err != io.EOF {
-			log.Println(err.Error())
-			continue
-		} else if err == io.EOF {
-			log.Println("connection closed")
-			return
-		}
-
-		if packet.Header == string(protocol.Message) {
-			fmt.Println("Message: ", packet.Body)
-		}
-	}
+	wg.Wait()
 }
