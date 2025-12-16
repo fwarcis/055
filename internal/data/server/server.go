@@ -71,16 +71,16 @@ func RunSharingWithOthers(
 
 		packet, err = sender.Receive()
 		if err != nil {
-			errChan <- &logging.ReceivingError{Sender: sender, BaseErr: err}
+			errChan <- &stream.ReceivingError{Sender: sender, BaseErr: err}
 			sent, err = sender.Send(string(statuses.Error), err.Error())
 			if err != nil {
-				errChan <- &logging.SendingError{Receiver: sender, Sent: sent, BaseErr: err}
+				errChan <- &stream.SendingError{Receiver: sender, Sent: sent, BaseErr: err}
 			}
 			continue
 		}
 		sent, err := sender.Send(string(statuses.Success), "message received")
 		if err != nil {
-			errChan <- &logging.SendingError{Receiver: sender, Sent: sent, BaseErr: err}
+			errChan <- &stream.SendingError{Receiver: sender, Sent: sent, BaseErr: err}
 		}
 
 		for i := range *receivers {
@@ -88,7 +88,7 @@ func RunSharingWithOthers(
 			header, body := (*packet).Header(), (*packet).Body()
 			sent, err = currentStream.Send(header, body)
 			if err != nil {
-				errChan <- &logging.SendingError{
+				errChan <- &stream.SendingError{
 					Receiver: currentStream,
 					Packet: *packet,
 					Sent: sent,

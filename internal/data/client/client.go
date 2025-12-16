@@ -43,7 +43,7 @@ func RunSending(ctx context.Context, stm stream.Stream, errChan chan error) {
 		body := input
 		sent, err = stm.Send(header, body)
 		if err != nil {
-			errChan <- &logging.SendingError{
+			errChan <- &stream.SendingError{
 				Receiver: stm,
 				Packet: stm.Deserialize(header, body),
 				Sent: sent,
@@ -66,7 +66,7 @@ func RunReceiving(ctx context.Context, stm stream.Stream, errChan chan error) {
 
 		packet, err = stm.Receive()
 		if err != nil {
-			errChan <- &logging.ReceivingError{Sender: stm, BaseErr: err}
+			errChan <- &stream.ReceivingError{Sender: stm, BaseErr: err}
 			continue
 		}
 

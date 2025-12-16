@@ -21,3 +21,29 @@ type WrongPacketFormatError struct {
 func (err *WrongPacketFormatError) Error() string {
 	return fmt.Sprintf("stream: \"%q\": wrong packet format", err.Content)
 }
+
+type ReceivingError struct {
+	Sender  Stream
+	BaseErr error
+}
+
+func (err *ReceivingError) Error() string {
+	return err.Sender.Address() + ": " + err.BaseErr.Error()
+}
+
+type SendingError struct {
+	Receiver Stream
+	Packet   Packet
+	Sent     int
+	BaseErr  error
+}
+
+func (err *SendingError) Error() string {
+	return fmt.Sprintf(
+		"%s (%dB sent): %s: %s",
+		err.Receiver.Address(),
+		err.Sent,
+		err.Packet.Serialize(),
+		err.BaseErr.Error(),
+	)
+}
