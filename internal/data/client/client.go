@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"055/internal/data/logging"
+	"055/internal/data/statuses"
 	"055/internal/data/stream"
 )
 
@@ -45,9 +46,9 @@ func RunSending(ctx context.Context, stm stream.Stream, errChan chan error) {
 		if err != nil {
 			errChan <- &stream.SendingError{
 				Receiver: stm,
-				Packet: stm.Deserialize(header, body),
-				Sent: sent,
-				BaseErr: err,
+				Packet:   stm.Deserialize(header, body),
+				Sent:     sent,
+				BaseErr:  err,
 			}
 		}
 	}
@@ -68,9 +69,19 @@ func RunReceiving(ctx context.Context, stm stream.Stream, errChan chan error) {
 		if err != nil {
 			errChan <- &stream.ReceivingError{Sender: stm, BaseErr: err}
 			continue
+		} else if (*packet).Header() == string(statuses.Error) {
+			errChan <- &ServerError{Sender: stm, BaseErr: fmt.Errorf((*packet).Body())}
 		}
 
 		fmt.Println(stm.Address() + ": " + (*packet).Body())
 	}
 }
 
+type ServerError struct {
+	Sender  stream.Stream
+	BaseErr error
+}
+
+func (err *ServerError) Error() string {
+	return err.Sender.Address() + ": " + err.BaseErr.Error()
+}
